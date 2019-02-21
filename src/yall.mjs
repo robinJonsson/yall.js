@@ -165,7 +165,9 @@ function yall (userOptions) {
 
     lazyElements.forEach(lazyElement => {
       intersectionListener.observe(lazyElement);
-      requestIdleCallback(() => yallLoad(lazyElement));
+      if (options.idlyLoad === true && env.idleCallbackSupport === true) {
+        requestIdleCallback(() => yallLoad(lazyElement));
+      }
     });
   } else {
     env.eventsToBind.forEach(eventPair => eventPair[0].addEventListener(eventPair[1], yallBack));
