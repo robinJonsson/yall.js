@@ -63,6 +63,14 @@ function yall (userOptions) {
       }
 
       yallFlipDataAttrs(element);
+
+      element.classList.remove(options.lazyClass);
+      element.classList.add("is-lazyloading");
+  
+      element.addEventListener("load", function() {
+        element.classList.remove("is-lazyloading");
+        element.classList.add("is-lazyloaded");
+      });
     }
 
     // Lazy load <video> elements
@@ -128,7 +136,6 @@ function yall (userOptions) {
               yallLoad(lazyElement);
             }
 
-            lazyElement.classList.remove(options.lazyClass);
             lazyElements = lazyElements.filter(element => element !== lazyElement);
           }
         });
@@ -156,7 +163,6 @@ function yall (userOptions) {
             yallLoad(element);
           }
 
-          element.classList.remove(options.lazyClass);
           observer.unobserve(element);
           lazyElements = lazyElements.filter(lazyElement => lazyElement !== element);
         }
@@ -168,7 +174,7 @@ function yall (userOptions) {
     lazyElements.forEach(lazyElement => {
       intersectionListener.observe(lazyElement);
       if (options.idlyLoad === true && env.idleCallbackSupport === true) {
-        requestIdleCallback(() => yallLoad(lazyElement));
+        requestIdleCallback(() => yallLoad(lazyElement), idleCallbackOptions);
       }
     });
   } else {
