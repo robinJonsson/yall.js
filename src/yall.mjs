@@ -50,7 +50,19 @@ function yall (userOptions) {
 
   // This function handles the lazy loading of elements. It's kicked off by the
   // scroll handlers/intersection observers further down.
-  const yallLoad = element => {
+  const yallLoad = (element, index = 0, elements = []) => {
+    if(!element) {
+      return;
+    }
+
+    if(element.classList.contains("is-lazyloaded")) {
+      if (elements.length > 0 && index < elements.length) {
+        const nextIndex = index + 1;
+        yallLoad(elements[nextIndex], nextIndex, elements);
+      }
+      return;
+    }
+
     // Lazy load <img> elements
     if (element.tagName === "IMG") {
       let parentElement = element.parentNode;
@@ -68,6 +80,13 @@ function yall (userOptions) {
       element.addEventListener("load", function() {
         element.classList.remove("is-lazyloading");
         element.classList.add("is-lazyloaded");
+
+        if (elements.length > 0 && index < elements.length) {
+          requestIdleCallback(() => {
+            const nextIndex = index + 1;
+            yallLoad(elements[nextIndex], nextIndex, elements);
+          }, idleCallbackOptions);
+        }
       });
     }
 
@@ -171,9 +190,6 @@ function yall (userOptions) {
 
     lazyElements.forEach(lazyElement => {
       intersectionListener.observe(lazyElement);
-      if (options.idlyLoad === true && env.idleCallbackSupport === true) {
-        requestIdleCallback(() => yallLoad(lazyElement), idleCallbackOptions);
-      }
     });
   } else {
     env.eventsToBind.forEach(eventPair => eventPair[0].addEventListener(eventPair[1], yallBack));
@@ -181,19 +197,33 @@ function yall (userOptions) {
   }
 
   if (env.mutationObserverSupport === true && options.observeChanges === true) {
-    new MutationObserver(mutations => mutations.forEach(() => {
-      sliceCall(document.querySelectorAll(selectorString)).forEach(newElement => {
-        if (lazyElements.indexOf(newElement) === -1) {
-          lazyElements.push(newElement);
+    new MutationObserver(mutations => {
+      mutations.forEach(() => {
+        sliceCall(document.querySelectorAll(selectorString)).forEach(newElement => {
+          if (lazyElements.indexOf(newElement) === -1) {
+            lazyElements.push(newElement);
 
-          if (env.intersectionObserverSupport === true) {
-            intersectionListener.observe(newElement);
-          } else {
-            yallBack();
+            if (env.intersectionObserverSupport === true) {
+              intersectionListener.observe(newElement);
+            } else {
+              yallBack();
+            }
           }
-        }
+        });
       });
-    })).observe(document.querySelector(options.observeRootSelector), options.mutationObserverOptions);
+
+      if (options.idlyLoad === true && env.idleCallbackSupport === true) {
+        requestIdleCallback(() => {
+          yallLoad(sliceCall(document.querySelectorAll(selectorString))[0], 0, sliceCall(document.querySelectorAll(selectorString)));
+        }, idleCallbackOptions);
+      }  
+    }).observe(document.querySelector(options.observeRootSelector), options.mutationObserverOptions);
+  }
+
+  if (options.idlyLoad === true && env.idleCallbackSupport === true) {
+    requestIdleCallback(() => {
+      yallLoad(lazyElements[0], 0, lazyElements);
+    }, idleCallbackOptions);
   }
 }
 
