@@ -84,10 +84,15 @@ function yall (userOptions) {
         element.classList.add("is-lazyloaded");
 
         if (elements.length > 0 && index < elements.length) {
-          requestIdleCallback(() => {
-            const nextIndex = index + 1;
+          const nextIndex = index + 1;
+          if (options.idlyLoad === true && env.idleCallbackSupport === true) {
+            requestIdleCallback(() => {
+              yallLoad(elements[nextIndex], nextIndex, elements);
+            }, idleCallbackOptions);
+          } else {
             yallLoad(elements[nextIndex], nextIndex, elements);
-          }, idleCallbackOptions);
+          }
+
         }
       });
     }
