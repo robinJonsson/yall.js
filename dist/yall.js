@@ -223,7 +223,9 @@ function yall (userOptions) {
         requestIdleCallback(() => {
           yallLoad(sliceCall(document.querySelectorAll(selectorString))[0], 0, sliceCall(document.querySelectorAll(selectorString)));
         }, idleCallbackOptions);
-      }  
+      } else {
+        yallLoad(sliceCall(document.querySelectorAll(selectorString))[0], 0, sliceCall(document.querySelectorAll(selectorString)));
+      }
     }).observe(document.querySelector(options.observeRootSelector), options.mutationObserverOptions);
   }
 
@@ -231,6 +233,8 @@ function yall (userOptions) {
     requestIdleCallback(() => {
       yallLoad(lazyElements[0], 0, lazyElements);
     }, idleCallbackOptions);
+  } else {
+    yallLoad(lazyElements[0], 0, lazyElements);
   }
 }
 
